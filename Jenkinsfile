@@ -2,86 +2,125 @@ pipeline {
     agent any
 
     environment {
-        TF_VAR_region = 'us-east-2'
-        AWS_DEFAULT_REGION = 'us-east-2'
+        TERRAFORM_VERSION = '1.5.0'
+        AWS_REGION = 'us-east-2' // Updated region
+        PATH = "${env.HOME}/bin:${env.PATH}"
+        TF_DIR = 'module'
+    }
+
+    parameters {
+        booleanParam(name: 'APPLY_CHANGES', defaultValue: false, description: 'Apply the Terraform plan if true')
+        booleanParam(name: 'DESTROY_INFRA', defaultValue: false, description: 'Destroy the Terraform-managed infrastructure')
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'qa', 'staging', 'prod'], description: 'Choose deployment environment')
+        string(name: 'TF_WORKING_DIR', defaultValue: 'module', description: 'Path to the Terraform module directory')
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
     }
 
     stages {
-        stage('Checkout') {
+        stage('Build Metadata') {
             steps {
-                checkout scm
+                echo "\033[1;34mBUILD INFO:\033[0m"
+                echo "Build Number: ${env.BUILD_NUMBER}"
+                echo "Build URL: ${env.BUILD_URL}"
+                echo "Environment: ${params.ENVIRONMENT}"
             }
         }
 
-        stage('Terraform Init') {
+        stage('Checkout Project') {
             steps {
-                dir('test-eks-saru/module') {
-                    sh 'terraform init'
+                echo "\033[1;32mChecking out the repository...\033[0m"
+                git branch: 'main', credentialsId: 'git-sidhu', url: 'https://github.com/sidhu8431/test-eks-saru.git'
+            }
+        }
+
+        stage('Setup Terraform') {
+            steps {
+                echo "\033[1;32mSetting up Terraform...\033[0m"
+                sh '''
+                    mkdir -p $HOME/bin
+                    export PATH=$HOME/bin:$PATH
+
+                    if ! command -v terraform >/dev/null; then
+                        echo "Terraform not found. Installing..."
+                        curl -s -o terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+                        unzip -o terraform.zip
+                        mv -f terraform $HOME/bin/
+                        rm -f terraform.zip
+                    else
+                        echo "Terraform already installed."
+                    fi
+
+                    terraform -version
+                '''
+            }
+        }
+
+        stage('Initialize Terraform') {
+            steps {
+                echo "\033[1;36mInitializing Terraform...\033[0m"
+                dir("${params.TF_WORKING_DIR}") {
+                    sh 'terraform init -input=false'
                 }
             }
         }
 
-        stage('Terraform Validate') {
+        stage('Validate Terraform') {
             steps {
-                dir('test-eks-saru/module') {
+                echo "\033[1;36mValidating Terraform files...\033[0m"
+                dir("${params.TF_WORKING_DIR}") {
                     sh 'terraform validate'
                 }
             }
         }
 
-        stage('Terraform Plan') {
+        stage('Plan Terraform') {
             steps {
-                dir('test-eks-saru/module') {
-                    sh 'terraform plan -out=tfplan'
+                echo "\033[1;36mCreating a Terraform plan...\033[0m"
+                dir("${params.TF_WORKING_DIR}") {
+                    sh "terraform plan -var='region=${AWS_REGION}' -var='environment=${params.ENVIRONMENT}'"
                 }
             }
         }
 
-        stage('Approval: Apply or Destroy') {
+        stage('Apply Terraform') {
             when {
-                branch 'main'
+                expression { return params.APPLY_CHANGES && !params.DESTROY_INFRA }
             }
             steps {
-                script {
-                    def userChoice = input(
-                        message: 'Terraform Action Approval Required',
-                        parameters: [
-                            choice(name: 'Action', choices: ['Apply', 'Destroy', 'Abort'], description: 'Choose an action')
-                        ]
-                    )
+                echo "\033[1;33mApplying the Terraform plan...\033[0m"
+                dir("${params.TF_WORKING_DIR}") {
+                    sh "terraform apply -auto-approve -var='region=${AWS_REGION}' -var='environment=${params.ENVIRONMENT}'"
+                }
+            }
+        }
 
-                    if (userChoice == 'Apply') {
-                        dir('test-eks-saru/module') {
-                            sh 'terraform apply -auto-approve tfplan'
-                        }
-                    } else if (userChoice == 'Destroy') {
-                        dir('test-eks-saru/module') {
-                            sh 'terraform destroy -auto-approve'
-                        }
-                    } else {
-                        echo "Pipeline aborted by user."
-                        currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted by user.")
-                    }
+        stage('Destroy Terraform') {
+            when {
+                expression { return params.DESTROY_INFRA }
+            }
+            steps {
+                input message: "Are you sure you want to destroy infrastructure in '${params.ENVIRONMENT}'?", ok: "Yes, destroy it"
+                echo "\033[1;31mDestroying infrastructure...\033[0m"
+                dir("${params.TF_WORKING_DIR}") {
+                    sh "terraform destroy -auto-approve -var='region=${AWS_REGION}' -var='environment=${params.ENVIRONMENT}'"
                 }
             }
         }
     }
 
     post {
-        always {
-            dir('test-eks-saru/module') {
-                sh 'rm -f tfplan || true'
-            }
+        success {
+            echo "\033[1;32m Pipeline executed successfully!\033[0m"
         }
         failure {
-            echo 'Terraform operation failed.'
+            echo "\033[1;31m Pipeline failed. Please check the logs.\033[0m"
         }
-        success {
-            echo 'Terraform operation completed successfully.'
-        }
-        aborted {
-            echo 'Pipeline was aborted.'
+        always {
+            echo "\033[1;34m Cleanup stage (if needed) completed.\033[0m"
         }
     }
 }
