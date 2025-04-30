@@ -37,6 +37,28 @@ pipeline {
             }
         }
 
+        stage('Setup AWS Credentials') {
+            environment {
+                AWS_CREDENTIALS = credentials('sidhu_aws_access') // AWS credential ID in Jenkins
+            }
+            steps {
+                echo "\033[1;32mSetting up AWS credentials for region ${AWS_REGION}...\033[0m"
+                sh '''
+                    # Extract AWS credentials from Jenkins credentials store
+                    export AWS_ACCESS_KEY_ID=$(echo "$AWS_CREDENTIALS" | grep AWS_ACCESS_KEY_ID | cut -d'=' -f2)
+                    export AWS_SECRET_ACCESS_KEY=$(echo "$AWS_CREDENTIALS" | grep AWS_SECRET_ACCESS_KEY | cut -d'=' -f2)
+
+                    # Configure AWS CLI
+                    aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                    aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                    aws configure set region $AWS_REGION
+
+                    # Validate AWS credentials
+                    aws sts get-caller-identity
+                '''
+            }
+        }
+
         stage('Setup Terraform') {
             steps {
                 echo "\033[1;32mSetting up Terraform...\033[0m"
@@ -114,13 +136,13 @@ pipeline {
 
     post {
         success {
-            echo "\033[1;32m Pipeline executed successfully!\033[0m"
+            echo "\033[1;32mPipeline executed successfully!\033[0m"
         }
         failure {
-            echo "\033[1;31m Pipeline failed. Please check the logs.\033[0m"
+            echo "\033[1;31mPipeline failed. Please check the logs.\033[0m"
         }
         always {
-            echo "\033[1;34m Cleanup stage (if needed) completed.\033[0m"
+            echo "\033[1;34mCleanup stage (if needed) completed.\033[0m"
         }
     }
 }
