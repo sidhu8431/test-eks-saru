@@ -22,5 +22,5 @@ module "rds" {
   db_deletion_protection = var.db_deletion_protection
   db_max_connections     = var.db_max_connections
   db_engine_family       = var.db_engine_family
-  multi_az = var.multi_az
+ 
 }
