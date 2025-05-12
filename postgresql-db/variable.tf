@@ -114,3 +114,6 @@ variable "db_engine_family" {
  variable "vpc_id" {
   
 }
+variable "mulitle_az" {
+  mulitle_az = true
+}
