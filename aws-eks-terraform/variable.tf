@@ -36,10 +36,3 @@ variable "region" {
   default = "us-east-2"
 }
 
-variable "aws_account_id" {
-  description = "Your AWS account ID"
-}
-
-variable "oidc_provider" {
-  description = "OIDC provider URL (e.g., oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B716D3041E)"
-}
