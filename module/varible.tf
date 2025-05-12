@@ -266,3 +266,7 @@ variable "node_groups" {
     }
   }
 }
+
+variable "multi_az" {
+default = true
+}
