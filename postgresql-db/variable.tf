@@ -115,5 +115,5 @@ variable "db_engine_family" {
   
 }
 variable "multi_az" {
-  multi_az = true
+  # multi_az = true
 }
