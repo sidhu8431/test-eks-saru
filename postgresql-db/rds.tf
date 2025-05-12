@@ -18,7 +18,7 @@ resource "aws_db_instance" "logistics-postgres" {
   # ✅ Enable automated backups at midnight UTC
   backup_retention_period = 7
   backup_window           = "00:00-01:00"
-  multi_az                = var.multi_az  # ✅ Force Multi-AZ enabled 
+ 
  
   tags = {
     Name = var.db_identifier
