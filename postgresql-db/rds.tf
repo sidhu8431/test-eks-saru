@@ -15,6 +15,8 @@ resource "aws_db_instance" "logistics-postgres" {
   vpc_security_group_ids = var.db_security_group_ids
   skip_final_snapshot    = var.db_skip_final_snapshot
   deletion_protection     = var.db_deletion_protection
+  backup_retention_period = 7            # Keep backups for 7 days
+  backup_window           = "00:00-01:00"  # Backup starts between midnight and 1 AM UTC
   
  
   tags = {
