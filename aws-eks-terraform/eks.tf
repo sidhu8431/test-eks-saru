@@ -79,3 +79,13 @@ resource "aws_eks_node_group" "main" {
     aws_iam_role_policy_attachment.node_policy
   ]
 }
+
+resource "aws_iam_policy" "alb_controller_policy" {
+  name   = "AWSLoadBalancerControllerIAMPolicy"
+  policy = file("${path.module}/alb-controller-policy.json")
+}
+
+resource "aws_iam_role_policy_attachment" "alb_controller_policy_attach" {
+  policy_arn = aws_iam_policy.alb_controller_policy.arn
+  role       = aws_iam_role.node.name
+}
