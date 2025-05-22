@@ -5,5 +5,6 @@ module "security_group" {
   to_port    = var.to_port
   vpc_id     = module.logstic_vpc.vpc_id
   region     = var.region
+  environment = var.environment  # <--- add this line
   depends_on = [module.logstic_vpc]
 }
