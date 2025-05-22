@@ -11,4 +11,4 @@ variable "instance_type" {
 variable "public_subnet_ids" {} # Should be a list of subnets
 
 variable "sg_id" {}
-variable "" {}
+variable "environment" {}
