@@ -15,12 +15,11 @@ module "rds" {
   db_parameter_group_name = var.db_parameter_group_name
   db_multi_az             = var.db_multi_az
   db_publicly_accessible  = var.db_publicly_accessible
-  # db_security_group_ids   = module.logistic.aws_security_group[*].id
-  #  db_security_group_ids   = module.logstic_vpc.aws_security_group[*].id
-  db_security_group_ids  = module.security_group.sg_id
-  db_skip_final_snapshot = var.db_skip_final_snapshot
-  db_deletion_protection = var.db_deletion_protection
-  db_max_connections     = var.db_max_connections
-  db_engine_family       = var.db_engine_family
- 
+  db_security_group_ids   = module.security_group.sg_id
+  db_skip_final_snapshot  = var.db_skip_final_snapshot
+  db_deletion_protection  = var.db_deletion_protection
+  db_max_connections      = var.db_max_connections
+  db_engine_family        = var.db_engine_family
+
+  environment             = var.environment  # << Add this line
 }
