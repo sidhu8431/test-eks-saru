@@ -1,31 +1,54 @@
+
 variable "environment" {
-  default = "prod"
+  type        = string
+  default     = "prod"
+  description = "Environment for the deployment (e.g., dev, staging, prod)."
 }
 
-variable "cidr_block" {
-  default = "10.30.0.0/16"
+
+variable "db_instance_class" {
+  description = "The instance class to use"
+  type        = string
+  default     = "db.t3.large"
 }
 
-variable "subnet_public" {
-  default = ["10.30.1.0/24", "10.30.2.0/24"]
+
+
+
+variable "instance_type" {
+  default = "t3.medium"
 }
 
-variable "subnet_private" {
-  default = ["10.30.11.0/24", "10.30.12.0/24"]
+variable "cluster_name" {
+  default = "logistics-cluster"
+}
+variable "cluster_version" {
+  default = "1.31"
+}
+variable "node_groups" {
+ 
+  description = "EKS node group configuration"
+  type = map(object({
+    instance_types = list(string)
+    node_group_name = string
+    capacity_type  = string
+    scaling_config = object({
+      desired_size = number
+      max_size     = number
+      min_size     = number
+    })
+  }))
+  default = {
+    general = {
+      instance_types = ["t3.large"]
+      capacity_type  = "SPOT"
+      node_group_name = "logistics-node"
+      scaling_config = {
+        desired_size = 2
+        max_size     = 4
+        min_size     = 2
+      }
+    }
+  }
 }
 
-variable "db_allocated_storage" {
-  default = 100
-}
-
-variable "db_name" {
-  default = "proddb"
-}
-
-variable "db_username" {
-  default = "prodadmin"
-}
-
-variable "db_password" {
-  default = "ProdPass123!"
-}
