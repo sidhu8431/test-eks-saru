@@ -11,7 +11,11 @@ variable "db_instance_class" {
   type        = string
   default     = "db.t3.medium"
 }
-
+variable "db_identifier" {
+  description = "The DB instance identifier"
+  type        = string
+  default     = "logistics-postgres-staging"
+}
 
 
 
