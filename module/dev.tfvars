@@ -40,7 +40,7 @@ variable "node_groups" {
   }))
   default = {
     general = {
-      instance_types = ["t3a.medium"]
+      instance_types = ["t3.medium"]
       capacity_type  = "SPOT"
       node_group_name = "logistics-node"
       scaling_config = {
