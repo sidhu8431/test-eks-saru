@@ -12,5 +12,6 @@ module "bastion-server" {
   ami               = var.ami
   public_subnet_ids = module.logstic_vpc.public_subnet_ids
   sg_id             = module.security_group.sg_id
+  environment     = var.environment   # <---- ADD THIS
   #   vpc_id = module.logstic_vpc.vpc_id
 }
