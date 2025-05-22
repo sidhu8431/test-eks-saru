@@ -12,7 +12,11 @@ variable "db_instance_class" {
   default     = "db.t3.large"
 }
 
-
+variable "db_identifier" {
+  description = "The DB instance identifier"
+  type        = string
+  default     = "logistics-postgres-prod"
+}
 
 
 variable "instance_type" {
