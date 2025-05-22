@@ -23,6 +23,7 @@ resource "aws_instance" "bastion" {
   user_data = base64encode(file("${path.module}/bastion.sh"))  
 
 tags = {
-    Name = "bastion-server"                        # Helpful for instance identification
-  }
+    Name = "bastion-server",   # Helpful for instance identification
+    var.environment  
+}
 }
