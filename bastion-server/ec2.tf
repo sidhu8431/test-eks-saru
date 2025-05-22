@@ -18,7 +18,6 @@ resource "aws_instance" "bastion" {
   subnet_id       = var.public_subnet_ids[0]
   security_groups = [var.sg_id[0]]
   key_name        = "saru@123"
-  environment       = var.environment
 
   user_data = base64encode(file("${path.module}/bastion.sh"))
 
