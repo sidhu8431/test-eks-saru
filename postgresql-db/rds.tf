@@ -10,17 +10,18 @@ resource "aws_db_instance" "logistics-postgres" {
   password                = var.db_password
   db_subnet_group_name    = aws_db_subnet_group.logistics.name  
   parameter_group_name    = aws_db_parameter_group.logistics.name
-  multi_az               = var.db_multi_az
-  publicly_accessible    = var.db_publicly_accessible
-  vpc_security_group_ids = var.db_security_group_ids
-  skip_final_snapshot    = var.db_skip_final_snapshot
+  multi_az                = var.db_multi_az
+  publicly_accessible     = var.db_publicly_accessible
+  vpc_security_group_ids  = var.db_security_group_ids
+  skip_final_snapshot     = var.db_skip_final_snapshot
   deletion_protection     = var.db_deletion_protection
+
   # ✅ Enable automated backups at midnight UTC
   backup_retention_period = 7
   backup_window           = "00:00-01:00"
- 
- 
+
   tags = {
-    Name = var.db_identifier
+    Name        = "${var.db_identifier}-${var.environment}"  # e.g., logistics-postgres-dev
+    Environment = var.environment
   }
 }
